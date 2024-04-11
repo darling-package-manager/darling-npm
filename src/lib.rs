@@ -46,7 +46,7 @@ impl darling::PackageManager for Npm {
             .filter_map(|line| {
                 regex_macro::regex!(r"(\S+)@(\S+)")
                     .captures(line)
-                    .map(|captures| (captures[1].to_owned(), captures[1].to_owned()))
+                    .map(|captures| (captures[1].to_owned(), captures[2].to_owned()))
             })
             .collect::<Vec<_>>())
     }
