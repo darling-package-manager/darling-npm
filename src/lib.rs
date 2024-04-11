@@ -1,25 +1,53 @@
 use darling_api as darling;
 
-// You can rename this safely
-pub struct MyPackageManager;
+pub struct Npm;
 
-// Do not rename this! it must be `pub static PACKAGE_MANAGER` and impl `darling::PackageManager`.
-pub static PACKAGE_MANAGER: MyPackageManager = MyPackageManager;
+pub static PACKAGE_MANAGER: Npm = Npm;
 
-impl darling::PackageManager for MyPackageManager {
+impl darling::PackageManager for Npm {
     fn name(&self) -> String {
-        unimplemented!()
+        "npm".to_owned()
     }
 
-    fn install(&self, context: &darling::Context, package: &darling::InstallationEntry) -> anyhow::Result<()> {
-        unimplemented!();
+    fn install(&self, _context: &darling::Context, package: &darling::InstallationEntry) -> anyhow::Result<()> {
+        std::process::Command::new("npm")
+            .arg("install")
+            .arg("-g")
+            .arg(&package.name)
+            .spawn()?
+            .wait()?;
+
+        Ok(())
     }
 
-    fn uninstall(&self, context: &darling::Context, package: &darling::InstallationEntry) -> anyhow::Result<()> {
-        unimplemented!();
+    fn uninstall(&self, _context: &darling::Context, package: &darling::InstallationEntry) -> anyhow::Result<()> {
+        std::process::Command::new("npm")
+            .arg("uninstall")
+            .arg("-g")
+            .arg(&package.name)
+            .spawn()?
+            .wait()?;
+
+        Ok(())
     }
 
-    fn get_all_explicit(&self, context: &darling::Context) -> anyhow::Result<Vec<(String, String)>> {
-        unimplemented!();
+    fn get_all_explicit(&self, _context: &darling::Context) -> anyhow::Result<Vec<(String, String)>> {
+        let output = String::from_utf8(
+            std::process::Command::new("npm")
+                .arg("list")
+                .arg("-g")
+                .arg("--depth")
+                .arg("0")
+                .output()?
+                .stdout,
+        )?;
+        Ok(output
+            .lines()
+            .filter_map(|line| {
+                regex_macro::regex!(r"(\S+)@(\S+)")
+                    .captures(line)
+                    .map(|captures| (captures[1].to_owned(), captures[1].to_owned()))
+            })
+            .collect::<Vec<_>>())
     }
 }
