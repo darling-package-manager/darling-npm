@@ -27,7 +27,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "darling-template"
+name = "darling-npm"
 version = "0.1.0"
 dependencies = [
  "anyhow",
